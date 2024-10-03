@@ -174,6 +174,8 @@ production() {
 	echo_green "Initializing FTDI pins to default state"
 	init_pins
 
+	JIG_STATE=normal
+
 	while true ; do
 
 		if [ "$mode" == "single" ] ; then
@@ -212,6 +214,20 @@ production() {
 		! check_and_reboot "$LOGFILE" || break
 
 		show_start_state
+
+		if [ "$JIG_STATE" = "normal" ] ; then
+			(
+				pushd $SCRIPT_DIR/slot_machine/
+				source env/bin/activate
+				python 
+			)
+			# FIXME: find a sequence of buttons to enable this state
+			JIG_STATE="slot_machine"
+		fi
+
+		if [ "$JIG_STATE" = "slot_machine" ] ; then
+			continue
+		fi
 
 		if [ -f "$STATSFILE" ] ; then
 			source $STATSFILE

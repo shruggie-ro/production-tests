@@ -484,6 +484,14 @@ setup_zerotier_vpn() {
 	sudo zerotier-cli join d3ecf5726dcec114
 }
 
+setup_slot_machine() {
+	pushd slot_machine
+	python -m venv env
+	source $SCRIPT_DIR/slot_machine/env/bin/activate
+	pip install -r $SCRIPT_DIR/slot_machine/requirements.txt
+	popd
+}
+
 setup_bashrc_update() {
 	sed -i -e "/^# --- added by setup_env.sh/,/^# --- end setup_env.sh/d" "$HOME/.bashrc"
 
@@ -520,7 +528,7 @@ STEPS="bashrc_update disable_sudo_passwd misc_profile_cleanup raspi_config apt_i
 STEPS="$STEPS xfce4_power_manager_settings thunar_volman disable_lxde_automount openocd ft4232h_tool"
 STEPS="$STEPS libiio libm2k plutosdr_scripts sync_udev_rules_file write_autostart_config"
 STEPS="$STEPS pi_boot_config disable_pi_screen_blanking usbreset_tool release_files"
-STEPS="$STEPS zerotier_vpn"
+STEPS="$STEPS zerotier_vpn slot_machine"
 
 RAN_ONCE=0
 for step in $STEPS ; do
