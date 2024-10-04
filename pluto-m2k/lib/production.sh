@@ -124,6 +124,12 @@ wait_for_firmware_files() {
 	FW_VERSION="$(cat $ver_file)"
 }
 
+enter_slot_machin_mode() {
+	# FIXME: this will always enter slot-machine mode
+	#        need to find a sequence of buttons to trigger this as an easter egg
+	return 0
+}
+
 #----------------------------------#
 # Main section                     #
 #----------------------------------#
@@ -216,16 +222,22 @@ production() {
 		show_start_state
 
 		if [ "$JIG_STATE" = "normal" ] ; then
-			(
-				pushd $SCRIPT_DIR/slot_machine/
-				source env/bin/activate
-				python 
-			)
-			# FIXME: find a sequence of buttons to enable this state
-			JIG_STATE="slot_machine"
+			if enter_slot_machin_mode ; then
+				(
+					pushd $SCRIPT_DIR/slot_machine/
+					source env/bin/activate
+					python3 slot_machine.py
+					popd
+				)
+				JIG_STATE="slot_machine"
+			fi
 		fi
 
 		if [ "$JIG_STATE" = "slot_machine" ] ; then
+			# XXX/FIXME/Note: this is very hacky, but hey it's slot-machine mode;
+			#                 slot_machine.py script will listen for SIGUSR1 and
+			#                 do a run.
+			killall -USR1 python3
 			continue
 		fi
 
