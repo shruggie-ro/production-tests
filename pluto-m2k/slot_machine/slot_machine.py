@@ -2,9 +2,9 @@ import pygame
 import random
 import time
 
+import signal
 
 pygame.init()
-
 
 infoObject = pygame.display.Info()
 width, height = infoObject.current_w, infoObject.current_h
@@ -69,7 +69,7 @@ def scroll_images():
         
         
         display_image(current_image, y_position)
-        time.sleep(0.0006)
+        time.sleep(0.03)
 
         
         elapsed_time = time.time() - start_time
@@ -83,40 +83,40 @@ def scroll_images():
     display_image(final_image, height // 2)
     return final_image
 
+running = True
+scrolling_started = False
+
+def SigHandler(SIG, FRM):
+    global running, scrolling_started
+
+    if (SIG == signal.SIGTERM):
+        running = False
+    if (SIG == signal.SIGUSR1):
+        scrolling_started = True
+
 def main():
-    global screen, width, height, fullscreen
+    global screen, width, height, fullscreen, running, scrolling_started
 
     print("Press Enter to start scrolling, ESC to toggle fullscreen.")
 
-    
     fade_in_image(scaled_initial_image, duration=1)
 
-    running = True
-    scrolling_started = False
-    selected_image = None
+    signal.signal(signal.SIGTERM, SigHandler)
+    signal.signal(signal.SIGUSR1, SigHandler)
 
     while running:
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                running = False
+        if (not scrolling_started):
+            time.sleep(0.1)
+            continue
 
-            if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_RETURN:
-                    scrolling_started = True
-                    selected_image = scroll_images()
+        scrolling_started = False
 
-                if event.key == pygame.K_ESCAPE:
-                    fullscreen = not fullscreen
-                    if fullscreen:
-                        screen = pygame.display.set_mode((width, height), pygame.FULLSCREEN)
-                    else:
-                        width, height = 800, 600  
-                        screen = pygame.display.set_mode((width, height))
+        final_image = scroll_images()
+        display_image(final_image, height // 2)
 
-        if scrolling_started and selected_image:
-            display_image(selected_image, height // 2)
+        time.sleep(0.1)
 
     pygame.quit()
 
-if __name__ == "_main_":
+if __name__ == "__main__":
     main()
